@@ -1779,7 +1779,7 @@ function MembershipPortalPage({ claims, agentResults, hitlActions, setHitlAction
     const memberClaims = claims.filter(c=>c.member_id===memberId);
     return memberClaims.map(c=>{
       const a5=agentResults[4]?.[c.claim_id];
-      const a1=agentResults[0]?.[c.claim_id];
+      //const a1=agentResults[0]?.[c.claim_id];
       const hitl=hitlActions?.[c.claim_id]||{};
       const finalStatus=hitl.adjDecision?(hitl.adjDecision==="APPROVE"?"APPROVED":"REJECTED"):(a5?.decision||c.status);
       const notification = hitl.resubmitSent?"Resubmission requested — please upload missing documents":
@@ -1998,7 +1998,7 @@ function AuditLogPage({ auditLog, hitlActions, claims, agentDone }) {
   const agentsRun = Object.values(agentDone).filter(Boolean).length;
   const errorCount   = allEntries.filter(e => e.level === "ERROR").length;
   const warnCount    = allEntries.filter(e => e.level === "WARN").length;
-  const hitlCount    = allEntries.filter(e => e.event === "HITL_ACTION").length;
+ // const hitlCount    = allEntries.filter(e => e.event === "HITL_ACTION").length;
 
   const handleExport = () => {
     const lines = allEntries.map(e =>
