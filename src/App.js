@@ -63,6 +63,7 @@ const daysBetween = (d1, d2) => Math.floor((new Date(d2) - new Date(d1)) / 86400
 const now = () => new Date().toISOString().replace("T"," ").split(".")[0];
 
 /* ── DESIGN TOKENS ───────────────────────────────────────────── */
+// eslint-disable-next-line no-unused-vars
 const T = {
   sidebar:"#0e1b45", sidebarDk:"#08122f", sidebarMd:"#14255a",
   sidebarText:"rgba(255,255,255,0.87)", sidebarMuted:"rgba(255,255,255,0.45)",
@@ -281,6 +282,7 @@ function runAgent4(claims, a1R, a2R, a3R) {
       let coveredAmt = 0, excludedAmt = 0; const lineDetails = [];
       for (const doc of c.documents) {
         for (const item of doc.items || []) {
+          // eslint-disable-next-line no-unused-vars
           const isCov = (cat.covered_procedures||[]).some(p => item.desc.toLowerCase().includes(p.toLowerCase()));
           const isExcl = (cat.excluded_procedures||[]).some(p => item.desc.toLowerCase().includes(p.toLowerCase()));
           if (isExcl) { excludedAmt += item.amt; lineDetails.push({ ...item, status: "EXCLUDED", reason: "Cosmetic dental procedure — not covered under PLUM_GHI_2024" }); }
@@ -886,6 +888,7 @@ function AgentResultContent({ claim, result, agentIdx, hitlActions, setHitlActio
   const [editingField, setEditingField] = useState(null);
   const [editedValues, setEditedValues] = useState({});
   const [hitlReason, setHitlReason] = useState("");
+  // eslint-disable-next-line no-unused-vars
   const [riskAction, setRiskAction] = useState(null);
   const [adjAction, setAdjAction] = useState(null);
 
@@ -1237,7 +1240,7 @@ function AgentResultContent({ claim, result, agentIdx, hitlActions, setHitlActio
 
   /* ── AGENT 5: ADJUDICATION ───────────────────────────────── */
   if (agentIdx === 4) {
-    const { decision, approved=0, copay=0, planPays=0, networkSaving=0, confidence=0, flags=[], fraudScore=0, dentalPartial, rejectionReasonCode, rejectionDetail, proofLines=[], calculationSteps=[], eobLines=[], componentFailed, degradedNote } = result;
+    const { decision, approved=0, copay=0, planPays=0, confidence=0, flags=[], fraudScore=0, dentalPartial, rejectionReasonCode, rejectionDetail, proofLines=[], calculationSteps=[], eobLines=[], componentFailed, degradedNote } = result;
     const confPct = Math.round(confidence*100);
     const savedAdj = hitlActions?.[claim.claim_id]?.adjDecision;
     const savedAdjReason = hitlActions?.[claim.claim_id]?.adjReason;
@@ -1415,9 +1418,11 @@ function ResultRow({ claim, agentResult, agentIdx, hitlActions, setHitlActions, 
 /* ── INDIVIDUAL AGENT PAGE ───────────────────────────────────── */
 function AgentPage({ agentIdx, claims, agentResults, agentRunning, agentDone, runAgent, hitlActions, setHitlActions }) {
   const [showTerminal, setShowTerminal] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [terminalClaim, setTerminalClaim] = useState(null);
   const [terminalQueue, setTerminalQueue] = useState([]);
   const [terminalIdx, setTerminalIdx] = useState(0);
+  // eslint-disable-next-line no-unused-vars
   const [allDone, setAllDone] = useState(false);
 
   const AGENTS = [
@@ -1506,6 +1511,7 @@ function AgentPage({ agentIdx, claims, agentResults, agentRunning, agentDone, ru
 /* ── OVERVIEW PAGE ───────────────────────────────────────────── */
 function OverviewPage({ claims, agentResults, agentRunning, agentDone, runAgent, hitlActions, setHitlActions }) {
   const totalClaimed = claims.reduce((s,c)=>s+c.claimed_amount,0);
+  // eslint-disable-next-line no-unused-vars
   const totalProcessed = Object.values(agentResults[4]||{}).filter(r=>r.decision&&r.decision!=="NEEDS_RESUBMISSION").length;
   const manualReview = claims.filter(c=>agentResults[2]?.[c.claim_id]?.status==="MANUAL_REVIEW");
   const agentsRun = Object.values(agentDone).filter(Boolean).length;
