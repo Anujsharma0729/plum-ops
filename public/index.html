@@ -1,14 +1,1715 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <title>Plum OPS — Claims Workbench</title>
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Plum OPS — Intelligent Claims Processing Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@400;600&family=Satoshi:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --ink: #060d1f;
+    --ink2: #1a2740;
+    --ink3: #3a4d6e;
+    --plum: #5b21b6;
+    --plum-bright: #7c3aed;
+    --plum-lt: #a78bfa;
+    --plum-pale: #ede9fe;
+    --gold: #d97706;
+    --gold-lt: #fef3c7;
+    --teal: #0e7490;
+    --teal-lt: #ecfeff;
+    --green: #15803d;
+    --green-lt: #f0fdf4;
+    --red: #b91c1c;
+    --red-lt: #fef2f2;
+    --surface: #ffffff;
+    --bg: #f7f5ff;
+    --bg2: #0a0f2e;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Satoshi', sans-serif;
+    --serif: 'DM Serif Display', serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--surface);
+    color: var(--ink);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    height: 68px;
+    background: rgba(6,13,31,0.96);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(124,58,237,0.25);
+  }
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+  .nav-logo-mark {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-weight: 600;
+    color: white;
+    font-size: 14px;
+    letter-spacing: -1px;
+  }
+  .nav-wordmark {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 17px;
+    color: white;
+    letter-spacing: -0.3px;
+  }
+  .nav-wordmark span { color: var(--plum-lt); }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: rgba(255,255,255,0.65);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: white; }
+  .nav-cta {
+    background: var(--plum-bright);
+    color: white !important;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-weight: 600 !important;
+    transition: background 0.2s !important;
+  }
+  .nav-cta:hover { background: #6d28d9 !important; color: white !important; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    background: var(--bg2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 120px 24px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124,58,237,0.35) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 20% 80%, rgba(79,70,229,0.2) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 30% at 80% 90%, rgba(14,116,144,0.15) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124,58,237,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,58,237,0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(167,139,250,0.4);
+    background: rgba(124,58,237,0.15);
+    color: var(--plum-lt);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 32px;
+    position: relative;
+    animation: fadeUp 0.6s ease both;
+  }
+  .hero-badge::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 0 3px rgba(74,222,128,0.25);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 3px rgba(74,222,128,0.25)} 50%{box-shadow:0 0 0 6px rgba(74,222,128,0.1)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeUp2 { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(40px, 7vw, 80px);
+    color: white;
+    line-height: 1.05;
+    letter-spacing: -1px;
+    max-width: 900px;
+    margin-bottom: 24px;
+    position: relative;
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+  .hero h1 em {
+    font-style: italic;
+    background: linear-gradient(135deg, #a78bfa, #60a5fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    font-size: clamp(16px, 2.2vw, 20px);
+    color: rgba(255,255,255,0.6);
+    max-width: 640px;
+    margin-bottom: 48px;
+    position: relative;
+    animation: fadeUp 0.7s 0.2s ease both;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    position: relative;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    background: var(--plum-bright);
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+    box-shadow: 0 8px 24px rgba(124,58,237,0.4);
+  }
+  .btn-primary:hover { background: #6d28d9; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(124,58,237,0.5); }
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    color: rgba(255,255,255,0.85);
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .btn-outline:hover { border-color: var(--plum-lt); color: white; background: rgba(124,58,237,0.1); }
+
+  .hero-stats {
+    display: flex;
+    gap: 48px;
+    margin-top: 72px;
+    position: relative;
+    animation: fadeUp 0.8s 0.4s ease both;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .stat-item { text-align: center; }
+  .stat-num {
+    font-family: var(--mono);
+    font-size: 36px;
+    font-weight: 600;
+    color: white;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+  .stat-num span { color: var(--plum-lt); }
+  .stat-label { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 6px; letter-spacing: 0.3px; }
+  .stat-div { width: 1px; background: rgba(255,255,255,0.12); align-self: stretch; }
+
+  /* ── SECTION COMMON ── */
+  section { padding: 96px 24px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  .section-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .badge-purple { background: var(--plum-pale); color: var(--plum); }
+  .badge-teal   { background: var(--teal-lt);  color: var(--teal); }
+  .badge-gold   { background: var(--gold-lt);  color: var(--gold); }
+  .badge-green  { background: var(--green-lt); color: var(--green); }
+  .badge-red    { background: var(--red-lt);   color: var(--red); }
+  .badge-dark   { background: rgba(124,58,237,0.12); color: var(--plum-bright); border: 1px solid rgba(124,58,237,0.2); }
+  .section-heading {
+    font-family: var(--serif);
+    font-size: clamp(28px, 4vw, 48px);
+    color: var(--ink);
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    margin-bottom: 16px;
+  }
+  .section-heading em { font-style: italic; color: var(--plum); }
+  .section-sub {
+    font-size: 17px;
+    color: var(--ink3);
+    max-width: 580px;
+    line-height: 1.7;
+  }
+  .text-center { text-align: center; }
+  .text-center .section-sub { margin: 0 auto; }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow-section { background: var(--bg2); padding: 96px 24px; }
+  .flow-section .section-heading { color: white; }
+  .flow-section .section-sub { color: rgba(255,255,255,0.55); }
+
+  .flow-diagram {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    max-width: 960px;
+    margin: 64px auto 0;
+    position: relative;
+  }
+
+  /* Input channels row */
+  .flow-inputs {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 0;
+  }
+  .flow-channel {
+    background: rgba(124,58,237,0.12);
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 10px;
+    padding: 14px 22px;
+    text-align: center;
+    min-width: 130px;
+  }
+  .flow-channel-icon { font-size: 24px; margin-bottom: 6px; }
+  .flow-channel-name { font-size: 12px; font-weight: 600; color: var(--plum-lt); letter-spacing: 0.3px; }
+  .flow-channel-desc { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+  /* Arrow connector */
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0;
+  }
+  .flow-arrow-line {
+    width: 2px;
+    height: 32px;
+    background: linear-gradient(to bottom, rgba(124,58,237,0.5), rgba(124,58,237,0.8));
+  }
+  .flow-arrow-head {
+    width: 0; height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 10px solid rgba(124,58,237,0.8);
+  }
+  .flow-arrow-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+
+  /* Core system box */
+  .flow-core {
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid rgba(124,58,237,0.35);
+    border-radius: 16px;
+    padding: 28px 32px;
+    position: relative;
+  }
+  .flow-core-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--plum-lt);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .flow-core-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(124,58,237,0.25);
+  }
+  .flow-agents-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .flow-agent {
+    flex: 1;
+    min-width: 120px;
+    max-width: 180px;
+    background: rgba(124,58,237,0.1);
+    border: 1px solid rgba(124,58,237,0.25);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    position: relative;
+    transition: all 0.2s;
+  }
+  .flow-agent:hover { border-color: var(--plum-lt); background: rgba(124,58,237,0.18); }
+  .flow-agent-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--plum-lt);
+    opacity: 0.7;
+  }
+  .flow-agent-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    margin: 4px 0;
+    line-height: 1.3;
+  }
+  .flow-agent-out {
+    font-size: 10px;
+    color: rgba(255,255,255,0.35);
+    font-family: var(--mono);
+  }
+  .flow-agent-connector {
+    position: absolute;
+    right: -13px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 2px;
+    background: rgba(124,58,237,0.5);
+  }
+
+  /* HITL band */
+  .flow-hitl {
+    background: rgba(217,119,6,0.08);
+    border: 1px solid rgba(217,119,6,0.3);
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .flow-hitl-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(217,119,6,0.2);
+  }
+  .flow-hitl-text { font-size: 12px; color: rgba(255,255,255,0.55); }
+  .flow-hitl-text strong { color: #fcd34d; font-weight: 600; }
+
+  /* Outputs row */
+  .flow-outputs {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .flow-output {
+    flex: 1;
+    min-width: 140px;
+    max-width: 200px;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .flow-output.green  { background: rgba(21,128,61,0.12);  border: 1px solid rgba(21,128,61,0.3); }
+  .flow-output.teal   { background: rgba(14,116,144,0.12); border: 1px solid rgba(14,116,144,0.3); }
+  .flow-output.blue   { background: rgba(29,78,216,0.12);  border: 1px solid rgba(29,78,216,0.3); }
+  .flow-output.purple { background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.3); }
+  .flow-output-icon { font-size: 20px; margin-bottom: 6px; }
+  .flow-output-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.8); }
+  .flow-output-desc { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 3px; font-family: var(--mono); }
+
+  /* ── PROBLEM VS SOLUTION ── */
+  .compare-section { background: white; }
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 64px;
+  }
+  @media(max-width:700px){ .compare-grid{grid-template-columns:1fr;} }
+  .compare-col {
+    border-radius: 16px;
+    padding: 36px;
+    border: 1.5px solid;
+  }
+  .compare-col.manual {
+    background: #fffbf5;
+    border-color: #fde68a;
+  }
+  .compare-col.automated {
+    background: #f5f3ff;
+    border-color: #c4b5fd;
+  }
+  .compare-col-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1.5px solid;
+  }
+  .manual .compare-col-header { border-color: #fde68a; }
+  .automated .compare-col-header { border-color: #c4b5fd; }
+  .compare-col-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .manual .compare-col-icon   { background: #fef3c7; }
+  .automated .compare-col-icon { background: var(--plum-pale); }
+  .compare-col-title { font-size: 18px; font-weight: 700; color: var(--ink); }
+  .compare-col-sub   { font-size: 13px; color: var(--ink3); margin-top: 2px; }
+
+  .compare-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+    align-items: flex-start;
+  }
+  .compare-item-bullet {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .manual .compare-item-bullet   { background: #fef3c7; color: var(--gold); }
+  .automated .compare-item-bullet { background: var(--plum-pale); color: var(--plum); }
+  .compare-item-text { font-size: 14px; color: var(--ink2); line-height: 1.6; }
+  .compare-item-text strong { font-weight: 700; display: block; color: var(--ink); }
+
+  /* ── FEATURE GRID ── */
+  .features-section { background: var(--bg); }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px,1fr));
+    gap: 24px;
+    margin-top: 64px;
+  }
+  .feature-card {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    border: 1.5px solid #e8e4f5;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--plum), #4f46e5);
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .feature-card:hover { border-color: #c4b5fd; transform: translateY(-4px); box-shadow: 0 20px 48px rgba(124,58,237,0.1); }
+  .feature-card:hover::before { opacity: 1; }
+  .feature-icon {
+    width: 52px; height: 52px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    margin-bottom: 20px;
+  }
+  .feature-icon.purple { background: var(--plum-pale); }
+  .feature-icon.teal   { background: var(--teal-lt); }
+  .feature-icon.green  { background: var(--green-lt); }
+  .feature-icon.gold   { background: var(--gold-lt); }
+  .feature-icon.red    { background: var(--red-lt); }
+  .feature-icon.blue   { background: #eff6ff; }
+  .feature-title { font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 10px; }
+  .feature-desc  { font-size: 14px; color: var(--ink3); line-height: 1.7; }
+  .feature-tags  { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
+  .feature-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--bg);
+    color: var(--ink3);
+    border: 1px solid #e0dff5;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── PIPELINE DETAIL ── */
+  .pipeline-section { background: white; }
+  .pipeline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 64px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+  }
+  .pipeline-step {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1.5px solid #ede9fe;
+    background: white;
+    transition: box-shadow 0.25s, border-color 0.25s, transform 0.25s;
+    position: relative;
+  }
+  .pipeline-step:hover {
+    border-color: #a78bfa;
+    box-shadow: 0 16px 48px rgba(124,58,237,0.12);
+    transform: translateY(-2px);
+  }
+  .pipeline-num-col {
+    width: 80px;
+    background: linear-gradient(180deg, var(--plum) 0%, #4f46e5 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 0;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .pipeline-step:nth-child(2) .pipeline-num-col { background: linear-gradient(180deg, #4f46e5 0%, #0e7490 100%); }
+  .pipeline-step:nth-child(3) .pipeline-num-col { background: linear-gradient(180deg, #0e7490 0%, #dc2626 100%); }
+  .pipeline-step:nth-child(4) .pipeline-num-col { background: linear-gradient(180deg, #d97706 0%, #ca8a04 100%); }
+  .pipeline-step:nth-child(5) .pipeline-num-col { background: linear-gradient(180deg, #15803d 0%, #0f766e 100%); }
+  .pipeline-num {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 18px;
+    color: white;
+    line-height: 1;
+  }
+  .pipeline-num-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+  }
+  .pipeline-num-icon { font-size: 22px; margin-bottom: 4px; }
+  .pipeline-body {
+    padding: 28px 32px;
+  }
+  .pipeline-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .pipeline-role-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 4px;
+    background: var(--plum-pale);
+    color: var(--plum);
+    letter-spacing: 0.5px;
+  }
+  .pipeline-sub {
+    font-size: 14px;
+    color: var(--ink3);
+    line-height: 1.7;
+    margin-bottom: 16px;
+    margin-top: 8px;
+  }
+  .pipeline-outputs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .pipeline-output {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.3px;
+  }
+  .po-green  { background: var(--green-lt); color: var(--green); border: 1px solid #86efac; }
+  .po-red    { background: var(--red-lt);   color: var(--red);   border: 1px solid #fca5a5; }
+  .po-gold   { background: var(--gold-lt);  color: var(--gold);  border: 1px solid #fcd34d; }
+  .po-teal   { background: var(--teal-lt);  color: var(--teal);  border: 1px solid #67e8f9; }
+  .po-purple { background: var(--plum-pale);color: var(--plum);  border: 1px solid #c4b5fd; }
+  .po-blue   { background: #eff6ff;         color: #1d4ed8;      border: 1px solid #bfdbfe; }
+  .pipeline-connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 0;
+    gap: 8px;
+    color: var(--plum-lt);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    opacity: 0.55;
+  }
+  .pipeline-connector::before, .pipeline-connector::after {
+    content: '';
+    flex: 1;
+    max-width: 80px;
+    height: 1px;
+    background: #ede9fe;
+  }
+
+  /* ── HITL SECTION ── */
+  .hitl-section { background: var(--bg); }
+  .hitl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+    gap: 20px;
+    margin-top: 56px;
+  }
+  .hitl-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1.5px solid #e8e4f5;
+  }
+  .hitl-trigger {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gold);
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hitl-trigger::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+  }
+  .hitl-title { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+  .hitl-desc  { font-size: 13px; color: var(--ink3); line-height: 1.6; }
+  .hitl-action {
+    margin-top: 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--plum);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ── USER GUIDE ── */
+  .guide-section { background: white; }
+  .guide-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+    gap: 24px;
+    margin-top: 64px;
+  }
+  .guide-step {
+    border: 1.5px solid #e8e4f5;
+    border-radius: 14px;
+    padding: 28px;
+    position: relative;
+  }
+  .guide-step-num {
+    position: absolute;
+    top: -14px;
+    left: 24px;
+    background: var(--plum);
+    color: white;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+  .guide-step-title { font-size: 17px; font-weight: 700; color: var(--ink); margin-bottom: 12px; margin-top: 8px; }
+  .guide-checklist { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .guide-checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--ink2);
+    line-height: 1.5;
+  }
+  .guide-checklist li::before {
+    content: '→';
+    color: var(--plum);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .guide-note {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: var(--plum-pale);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--plum);
+    font-family: var(--mono);
+    line-height: 1.5;
+  }
+
+  /* ── IDP STACK ── */
+  .idp-section { background: var(--bg2); }
+  .idp-section .section-heading { color: white; }
+  .idp-section .section-sub { color: rgba(255,255,255,0.55); }
+  .idp-tiers {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 2px;
+    margin-top: 56px;
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @media(max-width:800px){ .idp-tiers{grid-template-columns:repeat(2,1fr);} }
+  @media(max-width:500px){ .idp-tiers{grid-template-columns:1fr;} }
+  .idp-tier {
+    padding: 32px 24px;
+    position: relative;
+  }
+  .idp-tier:first-child { border-radius: 16px 0 0 16px; background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(79,70,229,0.15)); border: 1.5px solid rgba(124,58,237,0.4); border-right: none; }
+  .idp-tier:nth-child(2) { background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.1); border-right: none; }
+  .idp-tier:nth-child(3) { background: rgba(255,255,255,0.03); border: 1.5px solid rgba(255,255,255,0.07); border-right: none; }
+  .idp-tier:last-child   { border-radius: 0 16px 16px 0; background: rgba(14,116,144,0.12); border: 1.5px solid rgba(14,116,144,0.3); }
+  .idp-tier-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    margin-bottom: 12px;
+    display: inline-block;
+  }
+  .idp-tier:first-child .idp-tier-badge { background: rgba(124,58,237,0.3); color: var(--plum-lt); }
+  .idp-tier:nth-child(2) .idp-tier-badge { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
+  .idp-tier:nth-child(3) .idp-tier-badge { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.4); }
+  .idp-tier:last-child   .idp-tier-badge { background: rgba(14,116,144,0.25); color: #67e8f9; }
+  .idp-tier-name { font-size: 16px; font-weight: 700; color: white; margin-bottom: 8px; }
+  .idp-tier-role { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+  /* ── METRICS ── */
+  .metrics-section { background: var(--bg); }
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+    gap: 20px;
+    margin-top: 56px;
+  }
+  .metric-card {
+    background: white;
+    border-radius: 14px;
+    padding: 32px 24px;
+    text-align: center;
+    border: 1.5px solid #e8e4f5;
+    transition: all 0.2s;
+  }
+  .metric-card:hover { border-color: #c4b5fd; box-shadow: 0 12px 32px rgba(124,58,237,0.08); }
+  .metric-val {
+    font-family: var(--mono);
+    font-size: 40px;
+    font-weight: 600;
+    color: var(--plum);
+    line-height: 1;
+    letter-spacing: -1.5px;
+  }
+  .metric-val span { font-size: 24px; }
+  .metric-label { font-size: 14px; color: var(--ink3); margin-top: 10px; font-weight: 500; }
+  .metric-context { font-size: 12px; color: var(--ink3); opacity: 0.7; margin-top: 4px; font-family: var(--mono); }
+
+  /* ── CTA BANNER ── */
+  .cta-section {
+    background: linear-gradient(135deg, #0a0f2e, #1a0a3e, #0d1a3a);
+    text-align: center;
+    padding: 96px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 80% at 50% 50%, rgba(124,58,237,0.25) 0%, transparent 70%);
+  }
+  .cta-section h2 { font-family: var(--serif); font-size: clamp(28px,5vw,52px); color: white; position: relative; margin-bottom: 20px; letter-spacing: -0.5px; }
+  .cta-section p  { font-size: 17px; color: rgba(255,255,255,0.55); max-width: 560px; margin: 0 auto 40px; position: relative; }
+  .cta-actions { display: flex; gap: 16px; justify-content: center; position: relative; flex-wrap: wrap; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink);
+    padding: 48px 24px;
+    color: rgba(255,255,255,0.45);
+    font-size: 13px;
+    text-align: center;
+  }
+  footer strong { color: rgba(255,255,255,0.8); }
+  .footer-logo { font-family: var(--mono); font-size: 18px; font-weight: 600; color: white; margin-bottom: 8px; }
+  .footer-logo span { color: var(--plum-lt); }
+
+  /* ── VIEW DEMO BUTTON ── */
+  .btn-demo {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
+    box-shadow: 0 8px 28px rgba(124,58,237,0.45), 0 0 0 1px rgba(255,255,255,0.1) inset !important;
+    letter-spacing: 0.3px;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-demo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+    pointer-events: none;
+  }
+  .btn-demo:hover {
+    background: linear-gradient(135deg, #6d28d9, #4338ca) !important;
+    box-shadow: 0 12px 36px rgba(124,58,237,0.55), 0 0 0 1px rgba(255,255,255,0.15) inset !important;
+    transform: translateY(-2px);
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.4); border-radius: 3px; }
+
+  /* Responsive nav */
+  @media(max-width:768px){
+    nav { padding: 0 20px; }
+    .nav-links { display: none; }
+    .hero-stats { gap: 24px; }
+    .stat-div { display: none; }
+    .pipeline-num-col { width: 60px; }
+    .pipeline-num { font-size: 14px; }
+    .pipeline-num-label { display: none; }
+    .pipeline-body { padding: 20px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="nav-logo-mark">P</div>
+    <span class="nav-wordmark">Plum <span>OPS</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pipeline">Pipeline</a></li>
+    <li><a href="#hitl">HITL</a></li>
+    <li><a href="#user-guide">User Guide</a></li>
+    <li><a href="#" class="nav-cta" onclick="openDemo(event)">▶ View Demo</a></li>
+  </ul>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-badge">🟢 Enterprise Claims Platform — v2.0 Live</div>
+  <h1>The <em>Intelligent Brain</em><br/>Behind Every Health Claim</h1>
+  <p class="hero-sub">Plum OPS replaces the slow, error-prone manual claims review cycle with a five-agent AI pipeline that processes, validates, and adjudicates health insurance claims — with full audit trails, explainable decisions, and human-in-the-loop controls.</p>
+  <div class="hero-actions">
+    <a class="btn-primary btn-demo" href="#" onclick="openDemo(event)">▶ View Demo</a>
+    <a class="btn-outline" href="#how-it-works">See How It Works ↓</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-item">
+      <div class="stat-num">5<span>x</span></div>
+      <div class="stat-label">Faster than manual review</div>
+    </div>
+    <div class="stat-div"></div>
+    <div class="stat-item">
+      <div class="stat-num">12</div>
+      <div class="stat-label">Policy checks per claim</div>
+    </div>
+    <div class="stat-div"></div>
+    <div class="stat-item">
+      <div class="stat-num">4</div>
+      <div class="stat-label">IDP extraction engines</div>
+    </div>
+    <div class="stat-div"></div>
+    <div class="stat-item">
+      <div class="stat-num">100<span>%</span></div>
+      <div class="stat-label">Auditable decisions</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── SYSTEM FLOW DIAGRAM ─── -->
+<section class="flow-section" id="how-it-works">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-badge badge-dark">SYSTEM ARCHITECTURE</div>
+      <h2 class="section-heading" style="color:white">End-to-End Claims Flow</h2>
+      <p class="section-sub">From submission through every channel to a final, explainable decision — every step is logged, auditable, and traceable.</p>
+    </div>
+
+    <div class="flow-diagram">
+
+      <!-- INPUT CHANNELS -->
+      <div class="flow-core" style="margin-bottom:0;">
+        <div class="flow-core-title">📥 Claim Submission Channels</div>
+        <div class="flow-inputs">
+          <div class="flow-channel">
+            <div class="flow-channel-icon">📧</div>
+            <div class="flow-channel-name">Email</div>
+            <div class="flow-channel-desc">Member / Provider</div>
+          </div>
+          <div class="flow-channel">
+            <div class="flow-channel-icon">🌐</div>
+            <div class="flow-channel-name">Member Portal</div>
+            <div class="flow-channel-desc">Self-service upload</div>
+          </div>
+          <div class="flow-channel">
+            <div class="flow-channel-icon">🏥</div>
+            <div class="flow-channel-name">Provider / Hospital</div>
+            <div class="flow-channel-desc">Direct submission</div>
+          </div>
+          <div class="flow-channel">
+            <div class="flow-channel-icon">⚡</div>
+            <div class="flow-channel-name">EDI Gateway</div>
+            <div class="flow-channel-desc">Electronic data interchange</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ARROW -->
+      <div class="flow-arrow">
+        <div class="flow-arrow-line"></div>
+        <div class="flow-arrow-head"></div>
+        <div class="flow-arrow-label">Claims System: ID mapping + member/enrollment lookup</div>
+      </div>
+
+      <!-- AGENT PIPELINE -->
+      <div class="flow-core">
+        <div class="flow-core-title">🤖 Five-Agent AI Pipeline — Plum OPS Console</div>
+        <div class="flow-agents-row">
+          <div class="flow-agent">
+            <div class="flow-agent-num">AGENT 1</div>
+            <div class="flow-agent-name">Ingest Agent</div>
+            <div class="flow-agent-out">Doc check + eligibility verification</div>
+          </div>
+          <div class="flow-agent">
+            <div class="flow-agent-num">AGENT 2</div>
+            <div class="flow-agent-name">Extraction Agent</div>
+            <div class="flow-agent-out">IDP + OCR + field confidence</div>
+          </div>
+          <div class="flow-agent">
+            <div class="flow-agent-num">AGENT 3</div>
+            <div class="flow-agent-name">Risk & Integrity</div>
+            <div class="flow-agent-out">Fraud score + duplicate check</div>
+          </div>
+          <div class="flow-agent">
+            <div class="flow-agent-num">AGENT 4</div>
+            <div class="flow-agent-name">Policy Engine</div>
+            <div class="flow-agent-out">12-point policy evaluation</div>
+          </div>
+          <div class="flow-agent">
+            <div class="flow-agent-num">AGENT 5</div>
+            <div class="flow-agent-name">Adjudication</div>
+            <div class="flow-agent-out">Final decision + amount calc</div>
+          </div>
+        </div>
+
+        <!-- HITL -->
+        <div class="flow-hitl">
+          <div class="flow-hitl-dot"></div>
+          <div class="flow-hitl-text">
+            <strong>HITL Checkpoints at every stage:</strong> When documents are missing, unreadable, or a fraud flag fires — Ops can send a mail request to the member or provider to resubmit. Member completes the action, pipeline resumes.
+          </div>
+        </div>
+      </div>
+
+      <!-- ARROW -->
+      <div class="flow-arrow">
+        <div class="flow-arrow-line"></div>
+        <div class="flow-arrow-head"></div>
+        <div class="flow-arrow-label">Decision + settlement synced to all downstream systems</div>
+      </div>
+
+      <!-- OUTPUTS -->
+      <div class="flow-core" style="margin-top:0;">
+        <div class="flow-core-title">📤 Decision Outputs</div>
+        <div class="flow-outputs">
+          <div class="flow-output green">
+            <div class="flow-output-icon">✅</div>
+            <div class="flow-output-name">Claims System</div>
+            <div class="flow-output-desc">Status + settlement amount</div>
+          </div>
+          <div class="flow-output teal">
+            <div class="flow-output-icon">📋</div>
+            <div class="flow-output-name">Enrollment System</div>
+            <div class="flow-output-desc">YTD balance updated</div>
+          </div>
+          <div class="flow-output blue">
+            <div class="flow-output-icon">👤</div>
+            <div class="flow-output-name">Member Portal</div>
+            <div class="flow-output-desc">Plain-language notification</div>
+          </div>
+          <div class="flow-output purple">
+            <div class="flow-output-icon">🔍</div>
+            <div class="flow-output-name">Audit Trail</div>
+            <div class="flow-output-desc">Full reconstructable trace</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── MANUAL vs AUTOMATED ─── -->
+<section class="compare-section">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-badge badge-gold">THE TRANSFORMATION</div>
+      <h2 class="section-heading">Manual Process vs <em>Plum OPS</em></h2>
+      <p class="section-sub">Every pain point in the traditional claims workflow has a direct automation counterpart in the Plum OPS platform.</p>
+    </div>
+
+    <div class="compare-grid">
+      <!-- MANUAL -->
+      <div class="compare-col manual">
+        <div class="compare-col-header">
+          <div class="compare-col-icon">🐌</div>
+          <div>
+            <div class="compare-col-title">Manual Process</div>
+            <div class="compare-col-sub">Slow, inconsistent, un-auditable</div>
+          </div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-item-bullet">✗</div>
+          <div class="compare-item-text"><strong>Document Collection</strong> Files arrive via email, portal, WhatsApp. Missing documents discovered only after full review — wasting hours of Ops time.</div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-item-bullet">✗</div>
+          <div class="compare-item-text"><strong>Prescription & Bill Reading</strong> Blurry photos, handwritten Rx, rubber stamps, multi-language content create delays and errors in data entry.</div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-item-bullet">✗</div>
+          <div class="compare-item-text"><strong>Eligibility & Policy Lookup</strong> Ops manually checks waiting periods, sub-limits, exclusions, and co-pay rules across multiple systems.</div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-item-bullet">✗</div>
+          <div class="compare-item-text"><strong>Fraud & Risk Review</strong> Risk signals depend on individual reviewer experience — inconsistently documented and hard to defend.</div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-item-bullet">✗</div>
+          <div class="compare-item-text"><strong>Settlement Calculation</strong> Co-pay, network discounts, and partial approval math varies between reviewers. Errors are common.</div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-item-bullet">✗</div>
+          <div class="compare-item-text"><strong>Member Communication</strong> Members receive vague, delayed messages with no specific guidance on what to fix or resubmit.</div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-item-bullet">✗</div>
+          <div class="compare-item-text"><strong>Audit & Traceability</strong> Reconstructing why a claim was approved or rejected is nearly impossible retroactively.</div>
+        </div>
+      </div>
+
+      <!-- AUTOMATED -->
+      <div class="compare-col automated">
+        <div class="compare-col-header">
+          <div class="compare-col-icon">⚡</div>
+          <div>
+            <div class="compare-col-title">Plum OPS Automation</div>
+            <div class="compare-col-sub">Fast, consistent, fully auditable</div>
+          </div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-item-bullet">✓</div>
+          <div class="compare-item-text"><strong>Smart Document Validation</strong> Ingest Agent validates document completeness before any processing begins — tells members exactly which file is missing and why.</div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-item-bullet">✓</div>
+          <div class="compare-item-text"><strong>4-Engine IDP Extraction</strong> Gemini Flash + PaddleOCR + Tesseract + Azure Form Recognizer extract fields from any document quality with per-field confidence scores.</div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-item-bullet">✓</div>
+          <div class="compare-item-text"><strong>12-Point Policy Engine</strong> Every waiting period, sub-limit, exclusion, and co-pay rule evaluated from a single policy config in milliseconds.</div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-item-bullet">✓</div>
+          <div class="compare-item-text"><strong>Automated Risk Scoring</strong> Risk Agent applies repeatable threshold checks and emits evidence-backed reason cards with composite fraud scores.</div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-item-bullet">✓</div>
+          <div class="compare-item-text"><strong>Deterministic Settlement</strong> Adjudication Agent calculates network discount → co-pay → branded drug co-pay in the exact contractual sequence, every time.</div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-item-bullet">✓</div>
+          <div class="compare-item-text"><strong>Actionable Notifications</strong> Every message names the exact document type, rule, and action required. No ambiguity, no delays.</div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-item-bullet">✓</div>
+          <div class="compare-item-text"><strong>Full Audit Trail</strong> Every agent stage stores a reason card, extracted fields, and confidence score. Any decision is fully reconstructable.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FEATURES ─── -->
+<section class="features-section" id="features">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-badge badge-purple">PLATFORM CAPABILITIES</div>
+      <h2 class="section-heading">Everything in the <em>Plum OPS</em> Toolset</h2>
+      <p class="section-sub">Every module is purpose-built for health insurance operations — from document intelligence to real-time fraud detection.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon purple">🧠</div>
+        <div class="feature-title">Intelligent Document Processing (IDP)</div>
+        <div class="feature-desc">Four-engine extraction stack handles handwritten prescriptions, phone photos, rubber-stamped bills, and multilingual Indian documents. Per-field confidence scores ensure human review only when needed.</div>
+        <div class="feature-tags">
+          <span class="feature-tag">Gemini Flash</span>
+          <span class="feature-tag">PaddleOCR</span>
+          <span class="feature-tag">Tesseract</span>
+          <span class="feature-tag">Azure Form Recognizer</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon teal">⚡</div>
+        <div class="feature-title">Five-Agent Pipeline</div>
+        <div class="feature-desc">Sequential, event-driven agents — Ingest → Extract → Risk → Policy → Adjudication. Independently testable and replaceable. Failures reduce confidence but never crash the pipeline.</div>
+        <div class="feature-tags">
+          <span class="feature-tag">Fail-safe degradation</span>
+          <span class="feature-tag">Confidence scoring</span>
+          <span class="feature-tag">Sequential processing</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon green">📋</div>
+        <div class="feature-title">Policy Engine</div>
+        <div class="feature-desc">All 12 coverage checks — eligibility, waiting periods, exclusions, pre-auth, sub-limits, and annual caps — run from a single JSON config. Zero hardcoding. Policy changes take effect immediately.</div>
+        <div class="feature-tags">
+          <span class="feature-tag">Runtime config</span>
+          <span class="feature-tag">12-point evaluation</span>
+          <span class="feature-tag">Zero code changes</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon red">🛡️</div>
+        <div class="feature-title">Risk & Fraud Detection</div>
+        <div class="feature-desc">Composite fraud score from same-day claim counts, monthly limits, duplicate hash detection, document alteration flags, and provider pattern analysis. Routes to MANUAL_REVIEW — never auto-rejects.</div>
+        <div class="feature-tags">
+          <span class="feature-tag">Fraud score 0–1.0</span>
+          <span class="feature-tag">Evidence-backed</span>
+          <span class="feature-tag">Pattern detection</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon gold">👁️</div>
+        <div class="feature-title">Human-in-the-Loop (HITL)</div>
+        <div class="feature-desc">HITL checkpoints at every stage. Ops can send resubmission requests directly to members or providers, edit extracted fields, confirm high-value decisions, and override policy edge cases.</div>
+        <div class="feature-tags">
+          <span class="feature-tag">Mail requests</span>
+          <span class="feature-tag">Field editing</span>
+          <span class="feature-tag">Override controls</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon blue">📊</div>
+        <div class="feature-title">Full Audit Trail & Observability</div>
+        <div class="feature-desc">Every decision is reconstructable. The audit viewer shows exact inputs, agent outputs, field-level confidence scores, and HITL actions for any claim. Every reason card names the specific rule, value, and action.</div>
+        <div class="feature-tags">
+          <span class="feature-tag">Reason cards</span>
+          <span class="feature-tag">Per-field confidence</span>
+          <span class="feature-tag">Full trace</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon purple">🏥</div>
+        <div class="feature-title">Multi-Channel Claims Intake</div>
+        <div class="feature-desc">Accepts claims submitted via email, member portal, provider/hospital direct submission, and EDI gateway. The Claims System maps claim IDs and links to correct member and enrollment data automatically.</div>
+        <div class="feature-tags">
+          <span class="feature-tag">Email</span>
+          <span class="feature-tag">Portal</span>
+          <span class="feature-tag">EDI Gateway</span>
+          <span class="feature-tag">Provider direct</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon teal">🔄</div>
+        <div class="feature-title">Real-Time System Sync</div>
+        <div class="feature-desc">Every decision syncs to the Claims System (status + settlement), Enrollment System (YTD balance update), and Member Portal (plain-language notification). No manual data entry across systems.</div>
+        <div class="feature-tags">
+          <span class="feature-tag">Claims System</span>
+          <span class="feature-tag">Enrollment System</span>
+          <span class="feature-tag">Member Portal</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon green">🧮</div>
+        <div class="feature-title">Deterministic Adjudication</div>
+        <div class="feature-desc">Network discount applied before co-pay, exactly as contractually specified. Branded drug co-pay, partial approvals, and YTD cap calculations are deterministic — the same inputs always produce the same output.</div>
+        <div class="feature-tags">
+          <span class="feature-tag">APPROVED</span>
+          <span class="feature-tag">PARTIAL</span>
+          <span class="feature-tag">REJECTED</span>
+          <span class="feature-tag">MANUAL_REVIEW</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PIPELINE DETAIL ─── -->
+<section class="pipeline-section" id="pipeline">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-badge badge-purple">AGENT PIPELINE</div>
+      <h2 class="section-heading">Five Agents, One <em>Explainable</em> Decision</h2>
+      <p class="section-sub">Each agent has a defined contract, isolated responsibility, and produces structured output that flows into the next stage.</p>
+    </div>
+
+    <div class="pipeline-list">
+
+      <div class="pipeline-step">
+        <div class="pipeline-num-col">
+          <div class="pipeline-num-icon">📥</div>
+          <div class="pipeline-num">A1</div>
+          <div class="pipeline-num-label">Ingest</div>
+        </div>
+        <div class="pipeline-body">
+          <div class="pipeline-title">
+            Ingest Agent
+            <span class="pipeline-role-badge">DOCUMENT GATEKEEPER</span>
+          </div>
+          <div class="pipeline-sub">Validates document completeness before any processing begins. Classifies each file using Gemini Flash as PRESCRIPTION, HOSPITAL_BILL, LAB_REPORT, PHARMACY_BILL, or DISCHARGE_SUMMARY. Checks readability and flags duplicates. If any required document is missing or unreadable, sends a RESUBMISSION_REQUIRED request and holds the claim — never rejects.</div>
+          <div class="pipeline-outputs">
+            <span class="pipeline-output po-green">COMPLETE</span>
+            <span class="pipeline-output po-gold">INCOMPLETE</span>
+            <span class="pipeline-output po-red">UNREADABLE → HITL</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipeline-connector">↓ enriched claim passes to extraction</div>
+
+      <div class="pipeline-step">
+        <div class="pipeline-num-col">
+          <div class="pipeline-num-icon">🔍</div>
+          <div class="pipeline-num">A2</div>
+          <div class="pipeline-num-label">Extract</div>
+        </div>
+        <div class="pipeline-body">
+          <div class="pipeline-title">
+            Extraction Agent
+            <span class="pipeline-role-badge">IDP ORCHESTRATOR</span>
+          </div>
+          <div class="pipeline-sub">Calls the four-engine IDP stack per document. Selects highest-confidence field values. Cross-matches patient names across all documents — any mismatch halts the pipeline. Validates doctor registration number formats. Expands medical shorthand (HTN → Hypertension, T2DM → Type 2 Diabetes Mellitus). Ops can edit any extracted field; edits are audit-logged.</div>
+          <div class="pipeline-outputs">
+            <span class="pipeline-output po-green">PATIENT_MATCH</span>
+            <span class="pipeline-output po-red">PATIENT_MISMATCH → halt</span>
+            <span class="pipeline-output po-gold">LOW_CONFIDENCE → HITL</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipeline-connector">↓ structured fields pass to risk scoring</div>
+
+      <div class="pipeline-step">
+        <div class="pipeline-num-col">
+          <div class="pipeline-num-icon">🛡️</div>
+          <div class="pipeline-num">A3</div>
+          <div class="pipeline-num-label">Risk</div>
+        </div>
+        <div class="pipeline-body">
+          <div class="pipeline-title">
+            Risk &amp; Integrity Agent
+            <span class="pipeline-role-badge">FRAUD SCORER</span>
+          </div>
+          <div class="pipeline-sub">Evaluates six risk signals: same-day claim count, monthly claim count, high-value threshold (₹25,000+), duplicate claim hash, document alteration flags from IDP, and provider overuse patterns. Each flag contributes a weighted score capped at 1.0. Never auto-rejects — routes to MANUAL_REVIEW for human judgment above the 0.80 threshold.</div>
+          <div class="pipeline-outputs">
+            <span class="pipeline-output po-green">PASS (score &lt; 0.80)</span>
+            <span class="pipeline-output po-red">MANUAL_REVIEW (score ≥ 0.80)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipeline-connector">↓ verified claim runs through policy rules</div>
+
+      <div class="pipeline-step">
+        <div class="pipeline-num-col">
+          <div class="pipeline-num-icon">📋</div>
+          <div class="pipeline-num">A4</div>
+          <div class="pipeline-num-label">Policy</div>
+        </div>
+        <div class="pipeline-body">
+          <div class="pipeline-title">
+            Policy Engine Agent
+            <span class="pipeline-role-badge">RULE EVALUATOR</span>
+          </div>
+          <div class="pipeline-sub">Runs 12 sequential checks in deterministic order: member eligibility, policy active status, submission deadline, minimum amount, initial waiting period (30 days), condition-specific waiting periods (up to 730 days), exclusion matching, pre-authorization for high-value diagnostics, coverage category, per-claim limit, sub-limit cap, and annual OPD limit. All rules loaded from policy_terms.json — zero hardcoding.</div>
+          <div class="pipeline-outputs">
+            <span class="pipeline-output po-green">ELIGIBLE</span>
+            <span class="pipeline-output po-gold">PARTIAL (capped)</span>
+            <span class="pipeline-output po-red">REJECTED + reason code</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipeline-connector">↓ policy verdict enters final adjudication</div>
+
+      <div class="pipeline-step">
+        <div class="pipeline-num-col">
+          <div class="pipeline-num-icon">⚖️</div>
+          <div class="pipeline-num">A5</div>
+          <div class="pipeline-num-label">Adjudicate</div>
+        </div>
+        <div class="pipeline-body">
+          <div class="pipeline-title">
+            Adjudication Agent
+            <span class="pipeline-role-badge">FINAL CALCULATOR</span>
+          </div>
+          <div class="pipeline-sub">Applies financial calculations in the contractually correct sequence: network discount first, co-pay second, branded drug co-pay on pharmacy line items. Aggregates all agent results into a confidence score (starting at 1.0 with deductions for IDP failures). Generates a structured reason card with the full evidence chain. Claims above ₹25,000 or confidence below 0.60 require Ops confirmation before the decision is written.</div>
+          <div class="pipeline-outputs">
+            <span class="pipeline-output po-green">APPROVED</span>
+            <span class="pipeline-output po-teal">PARTIAL</span>
+            <span class="pipeline-output po-red">REJECTED</span>
+            <span class="pipeline-output po-gold">MANUAL_REVIEW</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── HITL ─── -->
+<section class="hitl-section" id="hitl">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-badge badge-gold">HUMAN-IN-THE-LOOP</div>
+      <h2 class="section-heading">Automation Handles Routine.<br/><em>You Handle Exceptions.</em></h2>
+      <p class="section-sub">HITL checkpoints are embedded at every stage so Ops can review, correct, or escalate without re-running the entire pipeline.</p>
+    </div>
+
+    <div class="hitl-grid">
+      <div class="hitl-card">
+        <div class="hitl-trigger">TRIGGER: MISSING DOCUMENT</div>
+        <div class="hitl-title">Document Resubmission Request</div>
+        <div class="hitl-desc">When a required document is missing or misclassified, Ops reviews the specific error and sends a resubmission request via the Member Portal — naming the exact document type needed.</div>
+        <div class="hitl-action">→ Member uploads missing file → pipeline resumes</div>
+      </div>
+
+      <div class="hitl-card">
+        <div class="hitl-trigger">TRIGGER: UNREADABLE DOCUMENT</div>
+        <div class="hitl-title">Re-upload Request</div>
+        <div class="hitl-desc">When IDP cannot extract fields reliably from a photo or scan, Ops inspects the preview and either accepts the extraction or sends a targeted re-upload request for that specific file.</div>
+        <div class="hitl-action">→ Member re-uploads → pipeline restarts from Agent 2</div>
+      </div>
+
+      <div class="hitl-card">
+        <div class="hitl-trigger">TRIGGER: PATIENT MISMATCH</div>
+        <div class="hitl-title">Cross-Document Identity Review</div>
+        <div class="hitl-desc">When patient names differ across documents (e.g. "Rajesh Kumar" on prescription vs "Arjun Mehta" on bill), Ops sees both names and the source files. They confirm or reject the mismatch.</div>
+        <div class="hitl-action">→ Rejected by Ops = REJECTED(PATIENT_MISMATCH)</div>
+      </div>
+
+      <div class="hitl-card">
+        <div class="hitl-trigger">TRIGGER: LOW CONFIDENCE FIELD</div>
+        <div class="hitl-title">Field Value Editing</div>
+        <div class="hitl-desc">For fields below the confidence threshold, Ops can directly edit the extracted value in the console. Every edit is stored in the audit trail with the editor's identity and timestamp.</div>
+        <div class="hitl-action">→ Corrected value propagates to Policy Engine</div>
+      </div>
+
+      <div class="hitl-card">
+        <div class="hitl-trigger">TRIGGER: FRAUD SCORE ≥ 0.80</div>
+        <div class="hitl-title">Risk Flag Review</div>
+        <div class="hitl-desc">All flagged signals and supporting evidence are surfaced for Ops to validate or reject. Ops records a reason code which is synced to the Claims System, Enrollment System, and Member Portal.</div>
+        <div class="hitl-action">→ Ops decision logged with full evidence trail</div>
+      </div>
+
+      <div class="hitl-card">
+        <div class="hitl-trigger">TRIGGER: CLAIM AMOUNT ≥ ₹25,000</div>
+        <div class="hitl-title">High-Value Confirmation</div>
+        <div class="hitl-desc">High-value claims are held for mandatory Ops confirmation before the decision is written. Ops reviews the full calculation breakdown — network discount, co-pay, and approved amount — before approving.</div>
+        <div class="hitl-action">→ Final approval only after Ops sign-off</div>
+      </div>
+
+      <div class="hitl-card">
+        <div class="hitl-trigger">TRIGGER: COMPONENT FAILURE</div>
+        <div class="hitl-title">Degraded Pipeline Review</div>
+        <div class="hitl-desc">When an agent component fails, the pipeline continues with reduced confidence. Ops reviews the incomplete trace and the skipped component's note, then confirms or escalates.</div>
+        <div class="hitl-action">→ Failure logged; MANUAL_REVIEW recommended</div>
+      </div>
+
+      <div class="hitl-card">
+        <div class="hitl-trigger">TRIGGER: POLICY EDGE CASE</div>
+        <div class="hitl-title">Policy Override</div>
+        <div class="hitl-desc">For claims that fall in ambiguous policy territory, Ops can override or confirm the Policy Engine's interpretation. The override is stored with the Ops user ID and reason, and the reason card is updated.</div>
+        <div class="hitl-action">→ Override stored; reason card updated</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── IDP STACK ─── -->
+<section class="idp-section">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-badge badge-dark">DOCUMENT INTELLIGENCE</div>
+      <h2 class="section-heading" style="color:white">Four-Engine IDP Stack</h2>
+      <p class="section-sub">No single OCR engine handles every Indian medical document. Plum OPS uses a tiered extraction strategy — highest-confidence field value wins.</p>
+    </div>
+
+    <div class="idp-tiers">
+      <div class="idp-tier">
+        <div class="idp-tier-badge">PRIMARY</div>
+        <div class="idp-tier-name">Gemini Flash</div>
+        <div class="idp-tier-role">Vision LLM — handles handwriting, regional languages, rubber stamps, shorthand expansion, and partial documents in a single structured JSON prompt.</div>
+      </div>
+      <div class="idp-tier">
+        <div class="idp-tier-badge">SECONDARY</div>
+        <div class="idp-tier-name">PaddleOCR</div>
+        <div class="idp-tier-role">Multilingual OCR for Hindi, Tamil, Telugu. Superior on low-contrast and skewed images. Runs on fields where Gemini confidence falls below threshold.</div>
+      </div>
+      <div class="idp-tier">
+        <div class="idp-tier-badge">FALLBACK</div>
+        <div class="idp-tier-name">Tesseract</div>
+        <div class="idp-tier-role">Tertiary fallback for clean, printed documents and structured table extraction from diagnostic lab reports. Runs when PaddleOCR confidence is still insufficient.</div>
+      </div>
+      <div class="idp-tier">
+        <div class="idp-tier-badge">ENTERPRISE</div>
+        <div class="idp-tier-name">Azure Form Recognizer</div>
+        <div class="idp-tier-role">Production-grade structured extraction with pre-built models for invoices, receipts, and prescriptions. Adapter interface allows hot-swap without pipeline changes.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── METRICS ─── -->
+<section class="metrics-section">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-badge badge-teal">PLATFORM METRICS</div>
+      <h2 class="section-heading">Built for <em>Enterprise Scale</em></h2>
+      <p class="section-sub">Designed for 75,000+ annual claims today, architected for 10x growth.</p>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-val">12</div>
+        <div class="metric-label">Policy Checks Per Claim</div>
+        <div class="metric-context">Run in deterministic sequence</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">4</div>
+        <div class="metric-label">IDP Extraction Engines</div>
+        <div class="metric-context">Highest confidence wins per field</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">5</div>
+        <div class="metric-label">Autonomous Agents</div>
+        <div class="metric-context">Sequential pipeline, each independent</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">8</div>
+        <div class="metric-label">HITL Trigger Types</div>
+        <div class="metric-context">Every exception has a human checkpoint</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">0.20</div>
+        <div class="metric-label">Confidence Score Floor</div>
+        <div class="metric-context">Pipeline never crashes — always produces output</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">₹0</div>
+        <div class="metric-label">Hardcoded Policy Logic</div>
+        <div class="metric-context">All rules from runtime JSON config</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── USER GUIDE ─── -->
+<section class="guide-section" id="user-guide">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-badge badge-green">USER GUIDE</div>
+      <h2 class="section-heading">How to Execute the <em>Plum OPS</em> Workflow</h2>
+      <p class="section-sub">Step-by-step guide for Ops users to run claims smoothly through the platform from intake to settlement.</p>
+    </div>
+
+    <div class="guide-steps">
+      <div class="guide-step">
+        <div class="guide-step-num">STEP 1</div>
+        <div class="guide-step-title">Review Incoming Claims</div>
+        <ul class="guide-checklist">
+          <li>Open the <strong>Claims System</strong> tab in the left sidebar to see all incoming claims with their submission channel (email, portal, EDI).</li>
+          <li>Verify the claim ID has been mapped to the correct member in the <strong>Enrollment System</strong> tab.</li>
+          <li>Check the Member Portal tab to confirm the member's current policy status and YTD usage before running the pipeline.</li>
+        </ul>
+        <div class="guide-note">TIP: Use the Overview dashboard for a summary of all pending claims and their current stage.</div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-num">STEP 2</div>
+        <div class="guide-step-title">Run the Ingest Agent</div>
+        <ul class="guide-checklist">
+          <li>Navigate to <strong>Agent 1 — Ingest Agent</strong> and click "Run Agent". The agent will classify all documents and check completeness.</li>
+          <li>Review the terminal log output for any missing document types or readability warnings.</li>
+          <li>If documents are missing: use the <strong>HITL action panel</strong> to send an email request to the member or provider asking them to resubmit the specific named document.</li>
+          <li>Wait for the member to re-upload, then re-run Agent 1 to confirm completeness before proceeding.</li>
+        </ul>
+        <div class="guide-note">STATUS: COMPLETE → proceed to Agent 2. INCOMPLETE → send HITL resubmission request and hold.</div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-num">STEP 3</div>
+        <div class="guide-step-title">Run the Extraction Agent</div>
+        <ul class="guide-checklist">
+          <li>Navigate to <strong>Agent 2 — Extraction Agent</strong> and click "Run Agent". IDP engines will extract fields from each document.</li>
+          <li>Review per-field confidence scores in the split-pane extraction view. Fields below 0.65 are flagged in yellow — click to edit directly.</li>
+          <li>If a patient name mismatch is detected, review both source documents side by side and confirm or reject. A rejection halts the pipeline.</li>
+          <li>For any unreadable document, use the HITL panel to request a cleaner re-upload from the member.</li>
+        </ul>
+        <div class="guide-note">EDIT: All field edits are audit-logged with your user ID and timestamp automatically.</div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-num">STEP 4</div>
+        <div class="guide-step-title">Run Risk & Policy Agents</div>
+        <ul class="guide-checklist">
+          <li>Run <strong>Agent 3 — Risk & Integrity</strong>. Review the fraud score and any flagged signals (same-day count, monthly count, duplicate hash).</li>
+          <li>If the fraud score exceeds 0.80, review the evidence cards carefully. Use the HITL panel to validate or reject the claim with a documented reason code.</li>
+          <li>Run <strong>Agent 4 — Policy Engine</strong>. Review the 12-point check results. Any REJECTED status will show the exact rule, the member's value, and the policy threshold.</li>
+          <li>For partial approvals, verify which line items were excluded and confirm the exclusion reason is documented correctly.</li>
+        </ul>
+        <div class="guide-note">FRAUD RULE: Scores ≥ 0.80 OR claims ≥ ₹25,000 require Ops confirmation before proceeding.</div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-num">STEP 5</div>
+        <div class="guide-step-title">Final Adjudication & Approval</div>
+        <ul class="guide-checklist">
+          <li>Run <strong>Agent 5 — Adjudication Agent</strong>. Review the full settlement breakdown: network discount, co-pay deduction, and approved amount.</li>
+          <li>For claims above ₹25,000 or confidence below 0.60, the decision will be held in <strong>PENDING_OPS_REVIEW</strong> — you must click "Confirm & Approve" or "Reject" to release it.</li>
+          <li>Review the reason card to ensure all evidence fields, rule names, and member-facing explanations are complete and accurate.</li>
+          <li>Confirm the decision. The system will automatically sync the outcome to the Claims System, Enrollment System, and Member Portal.</li>
+        </ul>
+        <div class="guide-note">DECISION CODES: APPROVED / PARTIAL / REJECTED / MANUAL_REVIEW — each has a structured reason card.</div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-num">STEP 6</div>
+        <div class="guide-step-title">Audit Log & Post-Processing</div>
+        <ul class="guide-checklist">
+          <li>Open the <strong>Audit Log</strong> tab to verify all agent stages, HITL actions, and sync events are recorded for the claim.</li>
+          <li>Confirm the member has received a portal notification with a plain-language explanation of the decision and the approved amount.</li>
+          <li>For MANUAL_REVIEW decisions, document your validation reason in the HITL action panel before closing the case.</li>
+          <li>Use the Settings tab to adjust thresholds (confidence, fraud cutoff, high-value limit) as needed for policy updates.</li>
+        </ul>
+        <div class="guide-note">AUDIT RULE: Never close a claim without a complete reason card. Every rejection must name the exact rule and the member's first eligible date (for waiting periods).</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA ─── -->
+<section class="cta-section" id="cta">
+  <h2>Ready to Transform<br/>Your Claims Operations?</h2>
+  <p>Plum OPS is production-ready for enterprise health insurance deployments. Watch the full pipeline in action — no signup required.</p>
+  <div class="cta-actions">
+    <a class="btn-primary btn-demo" href="#" onclick="openDemo(event)">▶ View Demo</a>
+    <a class="btn-outline" href="#how-it-works">Explore the Architecture</a>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="footer-logo">Plum <span>OPS</span></div>
+  <p><strong>Plum Insurance — Intelligent Claims Processing Platform</strong></p>
+  <p style="margin-top:8px">Architecture v2.0 · Multi-Agent Pipeline · IDP with Gemini Flash + PaddleOCR + Tesseract + Azure Form Recognizer</p>
+  <p style="margin-top:8px; opacity:0.5">Confidential — Internal Product Documentation</p>
+</footer>
+
+<script>
+  function openDemo(e) {
+    e.preventDefault();
+    window.location.href = "/app.html";
+  }
+</script>
+
+
+</body>
 </html>
