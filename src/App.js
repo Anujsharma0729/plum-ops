@@ -1,4 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+import { callGemini, isGeminiConfigured, getGeminiStatus } from "./geminiService";
+import { DEFAULT_PROMPTS, buildPrompt, AGENT_PROMPT_LABELS } from "./promptConfig";
 /* ═══════════════════════════════════════════════════════════════
    PLUM OPS PLATFORM v2 — Enterprise Claims Workbench
    Updated: Separate Claims/Enrollment, Membership Portal,
@@ -628,6 +630,33 @@ const css = `
 
   .divider { height:1px;background:#e8edf5;margin:16px 0; }
   .section-label { font-size:10.5px;font-weight:600;color:#8190a8;text-transform:uppercase;letter-spacing:0.10em;margin-bottom:12px; }
+
+  /* Gemini AI enrichment badge */
+  .ai-badge { display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;background:linear-gradient(135deg,#ede9fe,#dbeafe);color:#5b21b6;border:1px solid #c4b5fd;padding:2px 8px;border-radius:999px;letter-spacing:0.04em;margin-left:8px; }
+  .ai-badge::before { content:"✦"; font-size:9px; }
+  .ai-loading { display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#7c3aed;font-style:italic;margin-top:6px; }
+
+  /* Gemini-enriched reason card body */
+  .reason-card-ai-body { font-size:12px;line-height:1.7;margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.07);white-space:pre-line; }
+  .reason-card.fail .reason-card-ai-body   { color:#991b1b; }
+  .reason-card.warn .reason-card-ai-body   { color:#92400e; }
+  .reason-card.pass .reason-card-ai-body   { color:#166534; }
+  .reason-card.manual .reason-card-ai-body { color:#1d4ed8; }
+
+  /* Prompt config tab */
+  .prompt-config-tabs { display:flex;gap:2px;border-bottom:1px solid #dde4ef;margin-bottom:20px;flex-wrap:wrap; }
+  .prompt-tab-btn { padding:7px 14px;font-size:12.5px;color:#8190a8;background:none;border:none;border-bottom:2px solid transparent;font-weight:400;cursor:pointer;transition:all 0.12s;white-space:nowrap; }
+  .prompt-tab-btn.active { color:#7c3aed;border-bottom-color:#7c3aed;font-weight:600; }
+  .prompt-tab-btn:hover:not(.active) { color:#3a4d7a; }
+  .prompt-textarea { width:100%;min-height:280px;padding:12px 14px;border:1px solid #dde4ef;border-radius:8px;font-size:12px;font-family:'JetBrains Mono',monospace;color:#0b1433;background:#f8fafc;outline:none;resize:vertical;line-height:1.6;transition:border-color 0.15s; }
+  .prompt-textarea:focus { border-color:#7c3aed;background:#fff; }
+  .prompt-reset-btn { background:#f2f5fa;color:#5c6d92;border:1px solid #dde4ef;border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;transition:all 0.12s; }
+  .prompt-reset-btn:hover { background:#e8edf5; }
+  .gemini-status-row { display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f8fafc;border:1px solid #e8edf5;border-radius:8px;margin-bottom:16px;flex-wrap:wrap; }
+  .key-status-chip { font-size:11px;padding:3px 9px;border-radius:999px;font-weight:600;font-family:'JetBrains Mono',monospace; }
+  .key-healthy { background:#f0fdf4;color:#14532d;border:1px solid #86efac; }
+  .key-unhealthy { background:#fef2f2;color:#991b1b;border:1px solid #fca5a5; }
+  .key-unconfigured { background:#f2f5fa;color:#8190a8;border:1px solid #dde4ef; }
   .confidence-bar-wrap { display:flex;align-items:center;gap:8px; }
   .confidence-bar { flex:1;height:4px;background:#e8edf5;border-radius:999px;overflow:hidden; }
   .confidence-bar-fill { height:100%;border-radius:999px; }
@@ -673,8 +702,9 @@ const NAV = [
     { id: "agent-decision", label: "Adjudication",      sub: "Agent 05 · Final decision",      icon: "✅" },
   ]},
   { label: "CONFIGURATION", items: [
-    { id: "settings",   label: "Settings",   sub: "System connections", icon: "⚙️" },
-    { id: "audit-log",  label: "Audit Log",  sub: "Full pipeline trace", icon: "🗂️" },
+    { id: "settings",      label: "Settings",          sub: "System connections",    icon: "⚙️" },
+    { id: "prompt-config", label: "Prompt Config",     sub: "Edit Gemini prompts",   icon: "🤖" },
+    { id: "audit-log",     label: "Audit Log",         sub: "Full pipeline trace",   icon: "🗂️" },
   ]},
 ];
 
@@ -883,7 +913,7 @@ function SyncCard({ claim, agentResults, hitlActions }) {
 }
 
 /* ── AGENT RESULT CONTENT ────────────────────────────────────── */
-function AgentResultContent({ claim, result, agentIdx, hitlActions, setHitlActions, agentResults }) {
+function AgentResultContent({ claim, result, agentIdx, hitlActions, setHitlActions, agentResults, geminiTexts, prompts }) {
   const [previewDoc, setPreviewDoc] = useState(null);
   const [editingField, setEditingField] = useState(null);
   const [editedValues, setEditedValues] = useState({});
@@ -937,6 +967,7 @@ function AgentResultContent({ claim, result, agentIdx, hitlActions, setHitlActio
               <span className="reason-card-icon">❌</span>
               <span className="reason-card-title">Ingest Failed — Action Required</span>
               <span className="reason-code-chip">ERR_INGEST_FAIL</span>
+              {geminiTexts?.[claim.claim_id]?.agent1 && <span className="ai-badge">AI</span>}
             </div>
             {issues.map((iss,i)=>(
               <div key={i} style={{marginBottom:8,padding:"8px 10px",background:"rgba(0,0,0,0.04)",borderRadius:5}}>
@@ -945,6 +976,12 @@ function AgentResultContent({ claim, result, agentIdx, hitlActions, setHitlActio
                 <div style={{fontSize:11.5,color:"#7c3aed",marginTop:4,fontWeight:600}}>👉 {iss.action}</div>
               </div>
             ))}
+            {geminiTexts?.[claim.claim_id]?.agent1 && (
+              <div className="reason-card-ai-body">{geminiTexts[claim.claim_id].agent1}</div>
+            )}
+            {geminiTexts?.[claim.claim_id]?.agent1Loading && (
+              <div className="ai-loading"><span className="spinner"/>Gemini is analysing…</div>
+            )}
             <div style={{marginTop:10,paddingTop:10,borderTop:"1px solid #fca5a5"}}>
               <div style={{fontSize:11.5,color:"#991b1b",fontWeight:600,marginBottom:6}}>Send Resubmission Request to Member</div>
               {hitl.resubmitSent ? (
@@ -1105,8 +1142,15 @@ function AgentResultContent({ claim, result, agentIdx, hitlActions, setHitlActio
             <span className="reason-card-icon">{manualTrigger?"🔍":scorePct<40?"✅":"⚠️"}</span>
             <span className="reason-card-title">{manualTrigger?"Manual Review Required":scorePct<40?"Risk Check Cleared":"Elevated Risk — Review Recommended"}</span>
             <span className="reason-code-chip">{manualTrigger?"RISK_MANUAL_FLAG":scorePct<40?"RISK_CLEAR":"RISK_ELEVATED"}</span>
+            {geminiTexts?.[claim.claim_id]?.agent3 && <span className="ai-badge">AI</span>}
           </div>
           <div className="reason-card-body">{manualReason||`Fraud score: ${scorePct}%. ${flags.length>0?"Signals: "+flags.join("; ")+".":"No significant risk signals."} ${scorePct<40?"All checks passed — proceeding to policy evaluation.":""}`}</div>
+          {geminiTexts?.[claim.claim_id]?.agent3 && (
+            <div className="reason-card-ai-body">{geminiTexts[claim.claim_id].agent3}</div>
+          )}
+          {geminiTexts?.[claim.claim_id]?.agent3Loading && (
+            <div className="ai-loading"><span className="spinner"/>Gemini is analysing…</div>
+          )}
           {proof.length>0 && (
             <table className="proof-table">
               <thead><tr><th>Evidence</th><th>Found</th><th>Expected / Impact</th></tr></thead>
@@ -1193,8 +1237,15 @@ function AgentResultContent({ claim, result, agentIdx, hitlActions, setHitlActio
               <span className="reason-card-icon">🚫</span>
               <span className="reason-card-title">Policy Rejection — Detailed Reason</span>
               <span className="reason-code-chip">{rejectionReasonCode||"POLICY_FAIL"}</span>
+              {geminiTexts?.[claim.claim_id]?.agent4 && <span className="ai-badge">AI</span>}
             </div>
             <div className="reason-card-body">{rejectionDetail}</div>
+            {geminiTexts?.[claim.claim_id]?.agent4 && (
+              <div className="reason-card-ai-body">{geminiTexts[claim.claim_id].agent4}</div>
+            )}
+            {geminiTexts?.[claim.claim_id]?.agent4Loading && (
+              <div className="ai-loading"><span className="spinner"/>Gemini is analysing…</div>
+            )}
             {proofLines.length>0 && (
               <table className="proof-table">
                 <thead><tr><th>Policy Reference</th><th>Evidence / Value</th><th>Outcome</th></tr></thead>
@@ -1218,8 +1269,15 @@ function AgentResultContent({ claim, result, agentIdx, hitlActions, setHitlActio
               <span className="reason-card-icon">✅</span>
               <span className="reason-card-title">All Policy Checks Passed</span>
               <span className="reason-code-chip">POLICY_APPROVED</span>
+              {geminiTexts?.[claim.claim_id]?.agent4 && <span className="ai-badge">AI</span>}
             </div>
             <div className="reason-card-body">All eligibility rules satisfied. Approved base amount: {fmt(approvedAmount)}. Proceeding to adjudication.</div>
+            {geminiTexts?.[claim.claim_id]?.agent4 && (
+              <div className="reason-card-ai-body">{geminiTexts[claim.claim_id].agent4}</div>
+            )}
+            {geminiTexts?.[claim.claim_id]?.agent4Loading && (
+              <div className="ai-loading"><span className="spinner"/>Gemini is analysing…</div>
+            )}
             {proofLines.length>0 && (
               <table className="proof-table">
                 <thead><tr><th>Calculation</th><th>Detail</th><th>Outcome</th></tr></thead>
@@ -1330,8 +1388,15 @@ function AgentResultContent({ claim, result, agentIdx, hitlActions, setHitlActio
               <span className="reason-card-icon">🚫</span>
               <span className="reason-card-title">Claim Rejected</span>
               <span className="reason-code-chip">{rejectionReasonCode||"REJECTED"}</span>
+              {geminiTexts?.[claim.claim_id]?.agent5 && <span className="ai-badge">AI</span>}
             </div>
             <div className="reason-card-body">{rejectionDetail||"Claim rejected by policy engine."}</div>
+            {geminiTexts?.[claim.claim_id]?.agent5 && (
+              <div className="reason-card-ai-body">{geminiTexts[claim.claim_id].agent5}</div>
+            )}
+            {geminiTexts?.[claim.claim_id]?.agent5Loading && (
+              <div className="ai-loading"><span className="spinner"/>Gemini is analysing…</div>
+            )}
             {proofLines?.length>0 && (
               <table className="proof-table">
                 <thead><tr><th>Policy Reference</th><th>Evidence</th><th>Outcome</th></tr></thead>
@@ -1341,13 +1406,29 @@ function AgentResultContent({ claim, result, agentIdx, hitlActions, setHitlActio
           </div>
         ) : decision==="PARTIAL" ? (
           <div className="reason-card warn">
-            <div className="reason-card-header"><span className="reason-card-icon">⚡</span><span className="reason-card-title">Partial Approval</span><span className="reason-code-chip">PARTIAL_APPROVED</span></div>
+            <div className="reason-card-header"><span className="reason-card-icon">⚡</span><span className="reason-card-title">Partial Approval</span><span className="reason-code-chip">PARTIAL_APPROVED</span>
+              {geminiTexts?.[claim.claim_id]?.agent5 && <span className="ai-badge">AI</span>}
+            </div>
             <div className="reason-card-body">{`Covered procedures approved: ${fmt(approved)}\nExcluded (cosmetic): ${fmt(dentalPartial?.excludedAmt||0)}\nCosmetic dental procedures are excluded under PLUM_GHI_2024 policy.`}</div>
+            {geminiTexts?.[claim.claim_id]?.agent5 && (
+              <div className="reason-card-ai-body">{geminiTexts[claim.claim_id].agent5}</div>
+            )}
+            {geminiTexts?.[claim.claim_id]?.agent5Loading && (
+              <div className="ai-loading"><span className="spinner"/>Gemini is analysing…</div>
+            )}
           </div>
         ) : (
           <div className="reason-card pass">
-            <div className="reason-card-header"><span className="reason-card-icon">✅</span><span className="reason-card-title">Claim Approved</span><span className="reason-code-chip">APPROVED</span></div>
+            <div className="reason-card-header"><span className="reason-card-icon">✅</span><span className="reason-card-title">Claim Approved</span><span className="reason-code-chip">APPROVED</span>
+              {geminiTexts?.[claim.claim_id]?.agent5 && <span className="ai-badge">AI</span>}
+            </div>
             <div className="reason-card-body">{`All policy checks passed. Plan pays ${fmt(Math.max(0,planPays))} (after ${eobLines.length>0?"deductions applied":"no deductions"}).\nMember co-pay / liability: ${fmt(copay+(dentalPartial?.excludedAmt||0))}`}</div>
+            {geminiTexts?.[claim.claim_id]?.agent5 && (
+              <div className="reason-card-ai-body">{geminiTexts[claim.claim_id].agent5}</div>
+            )}
+            {geminiTexts?.[claim.claim_id]?.agent5Loading && (
+              <div className="ai-loading"><span className="spinner"/>Gemini is analysing…</div>
+            )}
           </div>
         )}
 
@@ -1389,7 +1470,7 @@ function AgentResultContent({ claim, result, agentIdx, hitlActions, setHitlActio
 }
 
 /* ── RESULT ROW (Accordion) ──────────────────────────────────── */
-function ResultRow({ claim, agentResult, agentIdx, hitlActions, setHitlActions, agentResults }) {
+function ResultRow({ claim, agentResult, agentIdx, hitlActions, setHitlActions, agentResults, geminiTexts, prompts }) {
   const [open, setOpen] = useState(false);
   if (!agentResult) return null;
   const statusToShow = agentResult.status || (agentIdx===4?agentResult.decision:"PENDING");
@@ -1408,7 +1489,7 @@ function ResultRow({ claim, agentResult, agentIdx, hitlActions, setHitlActions, 
       </div>
       {open && (
         <div className="result-row-body">
-          <AgentResultContent claim={claim} result={agentResult} agentIdx={agentIdx} hitlActions={hitlActions} setHitlActions={setHitlActions} agentResults={agentResults} />
+          <AgentResultContent claim={claim} result={agentResult} agentIdx={agentIdx} hitlActions={hitlActions} setHitlActions={setHitlActions} agentResults={agentResults} geminiTexts={geminiTexts} prompts={prompts} />
         </div>
       )}
     </div>
@@ -1416,7 +1497,7 @@ function ResultRow({ claim, agentResult, agentIdx, hitlActions, setHitlActions, 
 }
 
 /* ── INDIVIDUAL AGENT PAGE ───────────────────────────────────── */
-function AgentPage({ agentIdx, claims, agentResults, agentRunning, agentDone, runAgent, hitlActions, setHitlActions }) {
+function AgentPage({ agentIdx, claims, agentResults, agentRunning, agentDone, runAgent, hitlActions, setHitlActions, geminiTexts, prompts }) {
   const [showTerminal, setShowTerminal] = useState(false);
   // eslint-disable-next-line no-unused-vars
   const [terminalClaim, setTerminalClaim] = useState(null);
@@ -1494,7 +1575,7 @@ function AgentPage({ agentIdx, claims, agentResults, agentRunning, agentDone, ru
         <div>
           <div className="section-label" style={{marginBottom:12}}>Results — {claims.length} Claims</div>
           {claims.map(c=>(
-            <ResultRow key={c.claim_id} claim={c} agentResult={agentResults[agentIdx]?.[c.claim_id]} agentIdx={agentIdx} hitlActions={hitlActions} setHitlActions={setHitlActions} agentResults={agentResults} />
+            <ResultRow key={c.claim_id} claim={c} agentResult={agentResults[agentIdx]?.[c.claim_id]} agentIdx={agentIdx} hitlActions={hitlActions} setHitlActions={setHitlActions} agentResults={agentResults} geminiTexts={geminiTexts} prompts={prompts} />
           ))}
         </div>
       )}
@@ -1509,7 +1590,7 @@ function AgentPage({ agentIdx, claims, agentResults, agentRunning, agentDone, ru
 }
 
 /* ── OVERVIEW PAGE ───────────────────────────────────────────── */
-function OverviewPage({ claims, agentResults, agentRunning, agentDone, runAgent, hitlActions, setHitlActions }) {
+function OverviewPage({ claims, agentResults, agentRunning, agentDone, runAgent, hitlActions, setHitlActions, geminiTexts, prompts }) {
   const totalClaimed = claims.reduce((s,c)=>s+c.claimed_amount,0);
   // eslint-disable-next-line no-unused-vars
   const totalProcessed = Object.values(agentResults[4]||{}).filter(r=>r.decision&&r.decision!=="NEEDS_RESUBMISSION").length;
@@ -1649,7 +1730,7 @@ function OverviewPage({ claims, agentResults, agentRunning, agentDone, runAgent,
               {done&&(
                 <div style={{padding:"0 20px 16px"}}>
                   {claims.map(c=>(
-                    <ResultRow key={c.claim_id} claim={c} agentResult={agentResults[agent.idx]?.[c.claim_id]} agentIdx={agent.idx} hitlActions={hitlActions} setHitlActions={setHitlActions} agentResults={agentResults}/>
+                    <ResultRow key={c.claim_id} claim={c} agentResult={agentResults[agent.idx]?.[c.claim_id]} agentIdx={agent.idx} hitlActions={hitlActions} setHitlActions={setHitlActions} agentResults={agentResults} geminiTexts={geminiTexts} prompts={prompts}/>
                   ))}
                 </div>
               )}
@@ -2139,8 +2220,110 @@ function AuditLogPage({ auditLog, hitlActions, claims, agentDone }) {
   );
 }
 
+/* ── PROMPT CONFIG PAGE ──────────────────────────────────────── */
+function PromptConfigPage({ prompts, setPrompts }) {
+  const [activeAgent, setActiveAgent] = useState("agent3_risk");
+  const agentKeys = Object.keys(AGENT_PROMPT_LABELS);
+  const geminiStatus = getGeminiStatus();
+
+  const handleReset = () => {
+    setPrompts(p => ({ ...p, [activeAgent]: DEFAULT_PROMPTS[activeAgent] }));
+  };
+
+  return (
+    <div>
+      <div style={{marginBottom:24}}>
+        <div className="eyebrow" style={{marginBottom:10}}>PLUM OPS PLATFORM · GEMINI 2.0 FLASH</div>
+        <h1 style={{fontSize:26,fontWeight:400,fontFamily:"'Fraunces',serif",color:"#0b1433",marginBottom:6}}>Prompt Configuration</h1>
+        <p style={{fontSize:13.5,color:"#5c6d92",maxWidth:680,lineHeight:1.6}}>
+          Edit the prompts that Gemini 2.0 Flash uses for each agent's reasoning card and validation.
+          Changes take effect immediately on the next agent run. Use <code style={{background:"#f2f5fa",padding:"1px 5px",borderRadius:3,fontSize:12}}>{"{{CONTEXT}}"}</code> to inject live claim and policy data.
+        </p>
+      </div>
+
+      {/* Gemini status strip */}
+      <div className="gemini-status-row">
+        <span style={{fontSize:12,fontWeight:600,color:"#5c6d92"}}>Gemini Status:</span>
+        {!geminiStatus.configured ? (
+          <span className="key-status-chip key-unconfigured">⚠ No API keys configured — add keys to .env</span>
+        ) : (
+          geminiStatus.keyStatuses.map(k => (
+            <span key={k.index} className={`key-status-chip ${k.healthy ? "key-healthy" : "key-unhealthy"}`}>
+              Key {k.index}: {k.suffix} · {k.failures === 0 ? "OK" : `${k.failures} fail${k.failures>1?"s":""}`}
+            </span>
+          ))
+        )}
+        {geminiStatus.configured && (
+          <span style={{marginLeft:"auto",fontSize:11.5,color:"#8190a8"}}>
+            {geminiStatus.keyCount} key{geminiStatus.keyCount>1?"s":""} configured · auto-rotation enabled
+          </span>
+        )}
+      </div>
+
+      {/* Agent tabs */}
+      <div className="prompt-config-tabs">
+        {agentKeys.map(key => (
+          <button key={key} className={`prompt-tab-btn ${activeAgent===key?"active":""}`} onClick={()=>setActiveAgent(key)}>
+            {AGENT_PROMPT_LABELS[key]}
+          </button>
+        ))}
+      </div>
+
+      {/* Prompt editor */}
+      <div className="card">
+        <div className="card-header">
+          <span className="card-title">{AGENT_PROMPT_LABELS[activeAgent]}</span>
+          <div style={{display:"flex",gap:8,alignItems:"center"}}>
+            <span style={{fontSize:11.5,color:"#8190a8"}}>{"{{CONTEXT}}"} is replaced with live claim JSON at runtime</span>
+            <button className="prompt-reset-btn" onClick={handleReset}>↺ Reset to Default</button>
+          </div>
+        </div>
+        <div className="card-body">
+          <textarea
+            className="prompt-textarea"
+            value={prompts[activeAgent] || ""}
+            onChange={e => setPrompts(p => ({ ...p, [activeAgent]: e.target.value }))}
+            spellCheck={false}
+          />
+          <div style={{marginTop:12,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <span style={{fontSize:11.5,color:"#8190a8"}}>
+              {(prompts[activeAgent]||"").length} characters · prompt is saved automatically as you type
+            </span>
+            <span style={{fontSize:11.5,color:"#7c3aed",fontWeight:600}}>
+              ✦ Gemini 2.0 Flash · gemini-2.0-flash model
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* How it works */}
+      <div className="card" style={{marginTop:20}}>
+        <div className="card-header"><span className="card-title">How Gemini Integration Works</span></div>
+        <div className="card-body" style={{fontSize:13,color:"#5c6d92",lineHeight:1.8}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px 32px"}}>
+            {[
+              ["🔄 Key Rotation", "3 API keys are tried in order. If one is rate-limited or fails, the next is used automatically."],
+              ["🛡 Safe Fallback", "If all Gemini keys fail, the original rule-based reason cards are shown unchanged — no disruption."],
+              ["✦ AI Badge", "Reason cards enriched by Gemini display an AI badge so ops staff know which text is AI-generated."],
+              ["📝 Editable Prompts", "Each agent has its own prompt. Edit above and changes take effect on the next agent run."],
+              ["📋 Context Injection", "{{CONTEXT}} is replaced with structured JSON: claim data, policy rules, agent outputs."],
+              ["🔒 No Data Storage", "Gemini calls are stateless. No claim data is stored by Google beyond the request lifetime."],
+            ].map(([title, desc]) => (
+              <div key={title} style={{padding:"8px 0",borderBottom:"1px solid #f2f5fa"}}>
+                <div style={{fontWeight:600,color:"#0b1433",marginBottom:3}}>{title}</div>
+                <div style={{fontSize:12.5}}>{desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── SETTINGS PAGE ───────────────────────────────────────────── */
 function SettingsPage({ settings, setSettings }) {
+  const geminiStatus = getGeminiStatus();
   const connections = [
     { name:"Membership Portal",  url:"https://portal.plum.com/api/v1",          auth:"OAuth 2.0", status:"CONNECTED", sync:"Every 5 min" },
     { name:"Claims System",      url:"https://claims.icici-lombard.com/api",      auth:"API Key",   status:"CONNECTED", sync:"Real-time" },
@@ -2179,6 +2362,46 @@ function SettingsPage({ settings, setSettings }) {
               ))}
             </div>
           ))}
+
+          {/* Gemini AI Status */}
+          <div className="section-label" style={{marginTop:20}}>Gemini AI Integration</div>
+          <div className="sys-connection">
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <span style={{fontWeight:600,fontSize:13.5,color:"#0b1433"}}>Gemini 2.0 Flash</span>
+              <span style={{
+                background: geminiStatus.configured ? "#f0fdf4" : "#fef2f2",
+                color: geminiStatus.configured ? "#14532d" : "#991b1b",
+                border: `1px solid ${geminiStatus.configured ? "#86efac" : "#fca5a5"}`,
+                padding:"2px 8px",borderRadius:4,fontSize:11,fontWeight:600
+              }}>{geminiStatus.configured ? "CONFIGURED" : "NOT CONFIGURED"}</span>
+            </div>
+            {[
+              ["Model","gemini-2.0-flash"],
+              ["Keys Configured", geminiStatus.keyCount > 0 ? `${geminiStatus.keyCount} key(s)` : "None — add to .env"],
+              ["Key Rotation","Automatic round-robin"],
+              ["Fallback","Synthetic logic (always on)"],
+            ].map(([k,v])=>(
+              <div key={k} style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"#5c6d92",padding:"2px 0"}}>
+                <span>{k}</span>
+                <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#3a4d7a"}}>{v}</span>
+              </div>
+            ))}
+            {geminiStatus.keyCount > 0 && (
+              <div style={{marginTop:8,display:"flex",gap:6,flexWrap:"wrap"}}>
+                {geminiStatus.keyStatuses.map(k=>(
+                  <span key={k.index} className={`key-status-chip ${k.healthy?"key-healthy":"key-unhealthy"}`}>
+                    Key {k.index}: {k.suffix}
+                  </span>
+                ))}
+              </div>
+            )}
+            {!geminiStatus.configured && (
+              <div style={{marginTop:8,fontSize:12,color:"#b45309",background:"#fffbeb",padding:"6px 10px",borderRadius:5,border:"1px solid #fcd34d"}}>
+                Add REACT_APP_GEMINI_KEY_1/2/3 to your <code>.env</code> file to enable AI-powered reasoning cards.
+                Get free keys at <strong>aistudio.google.com</strong>
+              </div>
+            )}
+          </div>
         </div>
         <div>
           <div className="section-label">Agent Configuration</div>
@@ -2241,7 +2464,8 @@ function Topbar({ active }) {
     membership:"Membership Portal", policy:"Policy Engine",
     "agent-ingest":"Ingest Agent", "agent-extract":"Extraction Agent",
     "agent-risk":"Risk & Integrity", "agent-policy":"Policy Engine",
-    "agent-decision":"Adjudication Agent", settings:"Settings", "audit-log":"Audit Log",
+    "agent-decision":"Adjudication Agent", settings:"Settings",
+    "prompt-config":"Prompt Configuration", "audit-log":"Audit Log",
   };
   return (
     <header className="plum-topbar">
@@ -2272,9 +2496,108 @@ export default function App() {
     min_claim_amount:500, high_value_threshold:25000, same_day_limit:2, monthly_limit:6
   });
 
+  // ── Gemini state ──────────────────────────────────────────────
+  // geminiTexts[claimId][agentKey] = enriched text string | Loading flag
+  const [geminiTexts, setGeminiTexts] = useState({});
+  // prompts: editable via Prompt Config page
+  const [prompts, setPrompts] = useState({ ...DEFAULT_PROMPTS });
+
   const appendAuditLog = useCallback((entries) => {
     setAuditLog(prev => [...prev, ...entries]);
   }, []);
+
+  // ── Gemini enrichment helper ──────────────────────────────────
+  // Fires async Gemini calls for each claim result after an agent runs.
+  // Falls back gracefully — if Gemini fails, geminiTexts for that claim stays empty
+  // and the original reason card body is shown unchanged.
+  const enrichWithGemini = useCallback(async (agentIdx, newResults) => {
+    if (!isGeminiConfigured()) return;
+
+    const agentKeyMap = {
+      0: "agent1_ingest",
+      1: "agent2_extraction",
+      2: "agent3_risk",
+      3: "agent4_policy",
+      4: "agent5_adjudication",
+    };
+    const promptKey = agentKeyMap[agentIdx];
+    if (!promptKey) return;
+
+    // Only enrich claims that have substantive results (skip SKIPPED)
+    const relevantClaims = claims.filter(c => {
+      const r = newResults[c.claim_id];
+      if (!r) return false;
+      if (agentIdx === 0) return (r.issues?.length > 0); // Agent 1: only failures
+      if (agentIdx === 1) return r.status === "UNCLEAR_DOCUMENT";
+      if (agentIdx === 2) return r.status !== "SKIPPED";
+      if (agentIdx === 3) return r.status !== "SKIPPED";
+      if (agentIdx === 4) return r.decision && r.decision !== "NEEDS_RESUBMISSION";
+      return false;
+    });
+
+    if (relevantClaims.length === 0) return;
+
+    // Mark loading state
+    setGeminiTexts(prev => {
+      const updates = {};
+      relevantClaims.forEach(c => {
+        updates[c.claim_id] = {
+          ...(prev[c.claim_id] || {}),
+          [`${promptKey}Loading`]: true,
+        };
+      });
+      return { ...prev, ...updates };
+    });
+
+    // Fire Gemini calls (concurrent per claim)
+    await Promise.allSettled(relevantClaims.map(async (claim) => {
+      try {
+        const result = newResults[claim.claim_id];
+        const context = {
+          claim: {
+            claim_id: claim.claim_id,
+            member_name: claim.member_name,
+            claim_type: claim.claim_type,
+            date_of_service: claim.date_of_service,
+            claimed_amount: claim.claimed_amount,
+            hospital: claim.hospital,
+            diagnosis: claim.diagnosis,
+          },
+          agent_result: result,
+          policy_summary: {
+            policy_id: POLICY.policy_id,
+            insurer: POLICY.insurer,
+            opd_category: POLICY.opd_categories[claim.claim_type] || {},
+            waiting_periods: POLICY.waiting_periods,
+            exclusions: POLICY.exclusions,
+            fraud_thresholds: POLICY.fraud_thresholds,
+          },
+        };
+
+        const promptTemplate = prompts[promptKey] || DEFAULT_PROMPTS[promptKey];
+        const prompt = buildPrompt(promptTemplate, context);
+        const text = await callGemini(prompt, { maxOutputTokens: 512, temperature: 0.3 });
+
+        setGeminiTexts(prev => ({
+          ...prev,
+          [claim.claim_id]: {
+            ...(prev[claim.claim_id] || {}),
+            [promptKey]: text || null,
+            [`${promptKey}Loading`]: false,
+          },
+        }));
+      } catch (err) {
+        console.warn("[Gemini enrichment] Error for", claim.claim_id, err);
+        setGeminiTexts(prev => ({
+          ...prev,
+          [claim.claim_id]: {
+            ...(prev[claim.claim_id] || {}),
+            [`${promptKey}Loading`]: false,
+          },
+        }));
+      }
+    }));
+  }, [claims, prompts]);
 
   const runAgent = useCallback(async (agentIdx) => {
     const agentNames = ["Ingest Agent","Extraction Agent","Risk & Integrity","Policy Engine","Adjudication Agent"];
@@ -2282,6 +2605,9 @@ export default function App() {
     appendAuditLog([{ ts: ts(), level:"INFO", agent: agentNames[agentIdx], event:"AGENT_START", msg:`Agent ${agentIdx+1} (${agentNames[agentIdx]}) started — processing ${claims.length} claims` }]);
     setAgentRunning(p=>({...p,[agentIdx]:true}));
     await new Promise(r=>setTimeout(r,1400));
+
+    let capturedResults = null;
+
     setAgentResults(prev=>{
       const a0=prev[0],a1=prev[1],a2=prev[2],a3=prev[3];
       let newResults;
@@ -2290,6 +2616,7 @@ export default function App() {
       else if (agentIdx===2) newResults=runAgent3(claims,a0,a1);
       else if (agentIdx===3) newResults=runAgent4(claims,a0,a1,a2);
       else newResults=runAgent5(claims,a0,a1,a2,a3);
+      capturedResults = newResults;
       // Build per-claim audit entries from results
       const claimEntries = claims.flatMap(c => {
         const r = newResults[c.claim_id];
@@ -2298,7 +2625,6 @@ export default function App() {
         const level = ["REJECTED","MANUAL_REVIEW","NEEDS_RESUBMISSION"].includes(status) ? "WARN"
           : status === "SKIPPED" ? "INFO" : "SUCCESS";
         const entries = [{ ts: ts(), level, agent: agentNames[agentIdx], event:"CLAIM_RESULT", claimId: c.claim_id, member: c.member_name, claimType: c.claim_type, amount: c.claimed_amount, msg:`${c.claim_id} (${c.member_name}) → ${status}` }];
-        // Surface issues / failures / flags as individual log lines
         if (r.issues?.length) r.issues.forEach(iss => entries.push({ ts: ts(), level:"ERROR", agent: agentNames[agentIdx], event:"ISSUE", claimId: c.claim_id, member: c.member_name, claimType: c.claim_type, amount: c.claimed_amount, msg:`  ↳ [${iss.code}] ${iss.detail}` }));
         if (r.failures?.length) r.failures.forEach(f => entries.push({ ts: ts(), level:"WARN", agent: agentNames[agentIdx], event:"POLICY_FAIL", claimId: c.claim_id, member: c.member_name, claimType: c.claim_type, amount: c.claimed_amount, msg:`  ↳ Policy failure: ${f}` }));
         if (r.flags?.length) r.flags.forEach(f => entries.push({ ts: ts(), level:"WARN", agent: agentNames[agentIdx], event:"FRAUD_FLAG", claimId: c.claim_id, member: c.member_name, claimType: c.claim_type, amount: c.claimed_amount, msg:`  ↳ Risk flag: ${f}` }));
@@ -2312,36 +2638,41 @@ export default function App() {
     });
     setAgentRunning(p=>({...p,[agentIdx]:false}));
     setAgentDone(p=>({...p,[agentIdx]:true}));
-  }, [claims, appendAuditLog]);
+
+    // Fire Gemini enrichment async (non-blocking, safe fallback built in)
+    if (capturedResults) {
+      enrichWithGemini(agentIdx, capturedResults);
+    }
+  }, [claims, appendAuditLog, enrichWithGemini]);
 
   const agentIdxMap = { "agent-ingest":0, "agent-extract":1, "agent-risk":2, "agent-policy":3, "agent-decision":4 };
   const isAgentPage = active in agentIdxMap;
   const agentIdx = agentIdxMap[active];
 
-  const sharedProps = { claims, agentResults, hitlActions, setHitlActions };
+  const sharedProps = { claims, agentResults, hitlActions, setHitlActions, geminiTexts, prompts };
 
   const page =
-    active==="overview"     ? <OverviewPage {...sharedProps} agentRunning={agentRunning} agentDone={agentDone} runAgent={runAgent} /> :
-    active==="claims-sys"   ? <ClaimsSystemPage {...sharedProps} /> :
-    active==="enrollment"   ? <EnrollmentSystemPage {...sharedProps} /> :
-    active==="membership"   ? <MembershipPortalPage {...sharedProps} /> :
-    active==="policy"       ? <PolicyPage /> :
-    active==="settings"     ? <SettingsPage settings={settings} setSettings={setSettings} /> :
-    active==="audit-log"    ? <AuditLogPage auditLog={auditLog} hitlActions={hitlActions} claims={claims} agentDone={agentDone} /> :
-    isAgentPage             ? <AgentPage agentIdx={agentIdx} {...sharedProps} agentRunning={agentRunning} agentDone={agentDone} runAgent={runAgent} /> :
+    active==="overview"      ? <OverviewPage {...sharedProps} agentRunning={agentRunning} agentDone={agentDone} runAgent={runAgent} /> :
+    active==="claims-sys"    ? <ClaimsSystemPage {...sharedProps} /> :
+    active==="enrollment"    ? <EnrollmentSystemPage {...sharedProps} /> :
+    active==="membership"    ? <MembershipPortalPage {...sharedProps} /> :
+    active==="policy"        ? <PolicyPage /> :
+    active==="settings"      ? <SettingsPage settings={settings} setSettings={setSettings} /> :
+    active==="prompt-config" ? <PromptConfigPage prompts={prompts} setPrompts={setPrompts} /> :
+    active==="audit-log"     ? <AuditLogPage auditLog={auditLog} hitlActions={hitlActions} claims={claims} agentDone={agentDone} /> :
+    isAgentPage              ? <AgentPage agentIdx={agentIdx} {...sharedProps} agentRunning={agentRunning} agentDone={agentDone} runAgent={runAgent} /> :
     null;
 
-  
- return (
-  <>
-    <style>{css}</style>
-    <div className="plum-shell">
-      <Sidebar active={active} onNav={setActive}/>
-      <div className="plum-main">
-        <Topbar active={active}/>
-        <div className="plum-content">{page}</div>
+  return (
+    <>
+      <style>{css}</style>
+      <div className="plum-shell">
+        <Sidebar active={active} onNav={setActive}/>
+        <div className="plum-main">
+          <Topbar active={active}/>
+          <div className="plum-content">{page}</div>
+        </div>
       </div>
-    </div>
-  </>
-);
+    </>
+  );
 }
